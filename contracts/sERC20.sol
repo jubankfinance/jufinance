@@ -1101,7 +1101,10 @@ contract sToken is ERC20Permit, Ownable {
         @return bool
      */
     function _storeRebase( uint previousCirculating_, uint profit_, uint epoch_ ) internal returns ( bool ) {
-        uint rebasePercent = profit_.mul( 1e18 ).div( previousCirculating_ );
+        uint rebasePercent = 0;
+        if (previousCirculating_ > 0) {
+            rebasePercent = profit_.mul( 1e18 ).div( previousCirculating_ );
+        }
 
         rebases.push( Rebase ( {
             epoch: epoch_,
