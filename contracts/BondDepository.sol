@@ -788,6 +788,15 @@ contract BondDepositoryDai is Ownable {
         needStakeAmount = amount;
     }
 
+    /**
+     *  @notice set contract for auto stake
+     *  @param _staking address
+     */
+    function setStaking(address _staking) external onlyPolicy {
+        require(_staking != address(0));
+        stakingHelper = _staking;
+    }
+
     function getBondInfoData(address _addr) public view returns (Bond[] memory) {
         return bondInfoData[_addr];
     }
@@ -869,7 +878,7 @@ contract BondDepositoryDai is Ownable {
         }
         require(profit >= _inviteProfit, "Profit value not enough");
 
-        ITreasury(treasury).deposit(_amount, principle, profit.add(_inviteProfit));
+        ITreasury(treasury).deposit(_amount, principle, profit.sub(_inviteProfit));
 
         if (fee != 0) {
             // fee is transferred to dao and invite profit

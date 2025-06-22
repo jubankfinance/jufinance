@@ -272,7 +272,7 @@ contract Treasury is Ownable {
     using SafeERC20 for IERC20;
 
     event Deposit(address indexed token, uint amount, uint value);
-    event Withdrawal(address indexed token, uint amount, uint value);
+//    event Withdrawal(address indexed token, uint amount, uint value);
     event CreateDebt(
         address indexed debtor,
         address indexed token,
@@ -302,7 +302,6 @@ contract Treasury is Ownable {
 
     enum MANAGING {
         RESERVEDEPOSITOR,
-        RESERVESPENDER,
         RESERVETOKEN,
         RESERVEMANAGER,
         LIQUIDITYDEPOSITOR,
@@ -322,10 +321,6 @@ contract Treasury is Ownable {
     address[] public reserveDepositors; // Push only, beware false-positives. Only for viewing.
     mapping(address => bool) public isReserveDepositor;
     mapping(address => uint) public reserveDepositorQueue; // Delays changes to mapping.
-
-    address[] public reserveSpenders; // Push only, beware false-positives. Only for viewing.
-    mapping(address => bool) public isReserveSpender;
-    mapping(address => uint) public reserveSpenderQueue; // Delays changes to mapping.
 
     address[] public liquidityTokens; // Push only, beware false-positives.
     mapping(address => bool) public isLiquidityToken;
@@ -409,26 +404,6 @@ contract Treasury is Ownable {
         emit ReservesUpdated(totalReserves);
 
         emit Deposit(_token, _amount, value);
-    }
-
-    /**
-        @notice allow approved address to burn JUB for reserves
-        @param _amount uint
-        @param _token address
-     */
-    function withdraw(uint _amount, address _token) external {
-        require(isReserveToken[_token], "Not accepted"); // Only reserves can be used for redemptions
-        require(isReserveSpender[msg.sender] == true, "Not approved");
-
-        uint value = valueOf(_token, _amount);
-        IJUBERC20(JUB).burnFrom(msg.sender, value);
-
-        totalReserves = totalReserves.sub(value);
-        emit ReservesUpdated(totalReserves);
-
-        IERC20(_token).safeTransfer(msg.sender, _amount);
-
-        emit Withdrawal(_token, _amount, value);
     }
 
     /**
@@ -535,37 +510,26 @@ contract Treasury is Ownable {
     ) external onlyManager returns (bool) {
         require(_address != address(0));
         if (_managing == MANAGING.RESERVEDEPOSITOR) {
-            // 0
             reserveDepositorQueue[_address] = block.number.add(blocksNeededForQueue);
-        } else if (_managing == MANAGING.RESERVESPENDER) {
-            // 1
-            reserveSpenderQueue[_address] = block.number.add(blocksNeededForQueue);
         } else if (_managing == MANAGING.RESERVETOKEN) {
-            // 2
             reserveTokenQueue[_address] = block.number.add(blocksNeededForQueue);
         } else if (_managing == MANAGING.RESERVEMANAGER) {
-            // 3
             ReserveManagerQueue[_address] = block.number.add(
                 blocksNeededForQueue.mul(2)
             );
         } else if (_managing == MANAGING.LIQUIDITYDEPOSITOR) {
-            // 4
             LiquidityDepositorQueue[_address] = block.number.add(
                 blocksNeededForQueue
             );
         } else if (_managing == MANAGING.LIQUIDITYTOKEN) {
-            // 5
             LiquidityTokenQueue[_address] = block.number.add(blocksNeededForQueue);
         } else if (_managing == MANAGING.LIQUIDITYMANAGER) {
-            // 6
             LiquidityManagerQueue[_address] = block.number.add(
                 blocksNeededForQueue.mul(2)
             );
         } else if (_managing == MANAGING.DISTRIBUTOR) {
-            // 7
             distributorQueue[_address] = block.number.add(blocksNeededForQueue);
         } else if (_managing == MANAGING.SJUB) {
-            // 8
             sJUBQueue = block.number.add(blocksNeededForQueue);
         } else return false;
 
@@ -588,7 +552,6 @@ contract Treasury is Ownable {
         require(_address != address(0));
         bool result;
         if (_managing == MANAGING.RESERVEDEPOSITOR) {
-            // 0
             if (requirements(reserveDepositorQueue, isReserveDepositor, _address)) {
                 reserveDepositorQueue[_address] = 0;
                 if (!listContains(reserveDepositors, _address)) {
@@ -597,18 +560,7 @@ contract Treasury is Ownable {
             }
             result = !isReserveDepositor[_address];
             isReserveDepositor[_address] = result;
-        } else if (_managing == MANAGING.RESERVESPENDER) {
-            // 1
-            if (requirements(reserveSpenderQueue, isReserveSpender, _address)) {
-                reserveSpenderQueue[_address] = 0;
-                if (!listContains(reserveSpenders, _address)) {
-                    reserveSpenders.push(_address);
-                }
-            }
-            result = !isReserveSpender[_address];
-            isReserveSpender[_address] = result;
         } else if (_managing == MANAGING.RESERVETOKEN) {
-            // 2
             if (requirements(reserveTokenQueue, isReserveToken, _address)) {
                 reserveTokenQueue[_address] = 0;
                 if (!listContains(reserveTokens, _address)) {
@@ -618,7 +570,6 @@ contract Treasury is Ownable {
             result = !isReserveToken[_address];
             isReserveToken[_address] = result;
         } else if (_managing == MANAGING.RESERVEMANAGER) {
-            // 3
             if (requirements(ReserveManagerQueue, isReserveManager, _address)) {
                 reserveManagers.push(_address);
                 ReserveManagerQueue[_address] = 0;
@@ -629,7 +580,6 @@ contract Treasury is Ownable {
             result = !isReserveManager[_address];
             isReserveManager[_address] = result;
         } else if (_managing == MANAGING.LIQUIDITYDEPOSITOR) {
-            // 4
             if (
                 requirements(LiquidityDepositorQueue, isLiquidityDepositor, _address)
             ) {
@@ -642,7 +592,6 @@ contract Treasury is Ownable {
             result = !isLiquidityDepositor[_address];
             isLiquidityDepositor[_address] = result;
         } else if (_managing == MANAGING.LIQUIDITYTOKEN) {
-            // 5
             if (requirements(LiquidityTokenQueue, isLiquidityToken, _address)) {
                 LiquidityTokenQueue[_address] = 0;
                 if (!listContains(liquidityTokens, _address)) {
@@ -653,7 +602,6 @@ contract Treasury is Ownable {
             isLiquidityToken[_address] = result;
             bondCalculator[_address] = _calculator;
         } else if (_managing == MANAGING.LIQUIDITYMANAGER) {
-            // 6
             if (requirements(LiquidityManagerQueue, isLiquidityManager, _address)) {
                 LiquidityManagerQueue[_address] = 0;
                 if (!listContains(liquidityManagers, _address)) {
@@ -663,12 +611,10 @@ contract Treasury is Ownable {
             result = !isLiquidityManager[_address];
             isLiquidityManager[_address] = result;
         } else if (_managing == MANAGING.DISTRIBUTOR) {
-            // 7
             require(distributorQueue[_address] != 0, "Must queue");
             require(distributorQueue[_address] <= block.number, "Queue not expired");
             distributor = _address;
         } else if (_managing == MANAGING.SJUB) {
-            // 8
             sJUBQueue = 0;
             sJUB = _address;
             result = true;
