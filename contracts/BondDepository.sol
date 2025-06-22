@@ -826,7 +826,7 @@ contract BondDepositoryDai is Ownable {
         decayDebt();
 
         uint priceInUSD = bondPriceInUSD(); // Stored in bond info
-        uint nativePrice = _bondPrice();
+        uint nativePrice = _bondPriceAndUpdate();
 
         require(_maxPrice >= nativePrice, "Slippage limit: more than max price"); // slippage protection
 
@@ -907,7 +907,7 @@ contract BondDepositoryDai is Ownable {
             block.number.add(terms.vestingTerm),
             priceInUSD
         );
-        emit BondPriceChanged(bondPriceInUSD(), _bondPrice(), debtRatio());
+        emit BondPriceChanged(bondPriceInUSD(), _bondPriceAndUpdate(), debtRatio());
         emit BondDeposit(_depositor, principle, _amount);
         adjust(); // control variable is adjusted
         return payout;
@@ -1104,7 +1104,7 @@ contract BondDepositoryDai is Ownable {
      *  @notice calculate current bond price and remove floor if above
    *  @return price_ uint
    */
-    function _bondPrice() internal returns (uint price_) {
+    function _bondPriceAndUpdate() internal returns (uint price_) {
         price_ = terms.controlVariable.mul(debtRatio()).add(1000000000).div(1e7);
         if (price_ < terms.minimumPrice) {
             price_ = terms.minimumPrice;
