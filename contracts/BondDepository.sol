@@ -643,15 +643,15 @@ contract BondDepositoryDai is Ownable {
         address _bondCalculator,
         address _sJUB
     ) {
-        require(_JUB != address(0));
+        require(_JUB != address(0), "JUB error");
         JUB = _JUB;
-        require(_principle != address(0));
+        require(_principle != address(0), "Principle error");
         principle = _principle;
-        require(_treasury != address(0));
+        require(_treasury != address(0), "Treasury error");
         treasury = _treasury;
-        require(_DAO != address(0));
+        require(_DAO != address(0), "DAO error");
         DAO = _DAO;
-        require(_sJUB != address(0));
+        require(_sJUB != address(0), "sJUB error");
         sJUB = _sJUB;
         // bondCalculator should be address(0) if not LP bond
         bondCalculator = _bondCalculator;
@@ -774,7 +774,7 @@ contract BondDepositoryDai is Ownable {
         address _addr,
         CONTRACTID _contractId
     ) external onlyPolicy {
-        require(_addr != address(0));
+        require(_addr != address(0), "Invalid zero address");
         if (_contractId == CONTRACTID.INVITEID) {
             // 0
             community = _addr;
@@ -793,7 +793,7 @@ contract BondDepositoryDai is Ownable {
      *  @param _staking address
      */
     function setStaking(address _staking) external onlyPolicy {
-        require(_staking != address(0));
+        require(_staking != address(0), "Invalid zero address");
         stakingHelper = _staking;
     }
 
@@ -1305,8 +1305,8 @@ contract BondDepositoryDai is Ownable {
    *  @return bool
    */
     function recoverLostToken(address _token) external returns (bool) {
-        require(_token != JUB);
-        require(_token != principle);
+        require(_token != JUB, "Can not be JUB");
+        require(_token != principle, "Can not be principle");
         IERC20(_token).safeTransfer(DAO, IERC20(_token).balanceOf(address(this)));
         return true;
     }
