@@ -879,20 +879,44 @@ abstract contract ERC20Permit is ERC20, IERC2612Permit {
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
     bytes32 public constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
 
-    bytes32 public DOMAIN_SEPARATOR;
+    bytes32 private constant _TYPE_HASH =
+        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+
+    // Cache the domain separator as an immutable value, but also store the chain id that it corresponds to, in order to
+    // invalidate the cached domain separator if the chain id changes.
+    bytes32 private immutable _cachedDomainSeparator;
+    uint256 private immutable _cachedChainId;
 
     constructor() {
+        _cachedDomainSeparator = _buildDomainSeparator();
+        _cachedChainId = _getChainId();
+    }
 
+    function _getChainId() internal pure returns (uint256) {
         uint256 chainID;
         assembly {
             chainID := chainid()
         }
+        return chainID;
+    }
 
-        DOMAIN_SEPARATOR = keccak256(abi.encode(
-            keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+    /**
+     * @dev Returns the domain separator for the current chain.
+     */
+    function _domainSeparatorV4() internal view returns (bytes32) {
+        if (_getChainId() == _cachedChainId) {
+            return _cachedDomainSeparator;
+        } else {
+            return _buildDomainSeparator();
+        }
+    }
+
+    function _buildDomainSeparator() private view returns (bytes32) {
+        return keccak256(abi.encode(
+            _TYPE_HASH,
             keccak256(bytes(name())),
-            keccak256(bytes("1")), // Version
-            chainID,
+            keccak256(bytes("1")),
+            _getChainId(),
             address(this)
         ));
     }
@@ -915,7 +939,10 @@ abstract contract ERC20Permit is ERC20, IERC2612Permit {
         bytes32 hashStruct =
             keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, amount, _nonces[owner].current(), deadline));
 
-        bytes32 _hash = keccak256(abi.encodePacked(uint16(0x1901), DOMAIN_SEPARATOR, hashStruct));
+        bytes32 _hash = keccak256(abi.encodePacked(uint16(0x1901), _domainSeparatorV4(), hashStruct));
+        require(uint256(s) <= 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0,
+            "ECDSA: invalidsignature 's' value");
+        require(uint8(v) == 27 || uint8(v) == 28, "ECDSA: invalid signature 'v' value");
 
         address signer = ecrecover(_hash, v, r, s);
         require(signer != address(0) && signer == owner, "ZeroSwapPermit: Invalid signature");
