@@ -319,7 +319,7 @@ contract Policy is IPolicy {
     }
 
     function pullPolicy() public virtual override {
-        require( msg.sender == _newPolicy );
+        require( msg.sender == _newPolicy , "Ownable: caller is not the new owner");
         emit OwnershipTransferred( _policy, _newPolicy );
         _policy = _newPolicy;
         _newPolicy = address(0);
@@ -366,9 +366,9 @@ contract Distributor is Policy {
     /* ====== CONSTRUCTOR ====== */
 
     constructor( address _treasury, address _jub, uint _epochLength, uint _nextEpochBlock ) {
-        require( _treasury != address(0) );
+        require( _treasury != address(0) , "Treasury error");
         treasury = _treasury;
-        require( _jub != address(0) );
+        require( _jub != address(0) , "JUB error");
         JUB = _jub;
         epochLength = _epochLength;
         nextEpochBlock = _nextEpochBlock;
@@ -466,7 +466,7 @@ contract Distributor is Policy {
         @param _rewardRate uint
      */
     function addRecipient( address _recipient, uint _rewardRate ) external onlyPolicy() {
-        require( _recipient != address(0) );
+        require( _recipient != address(0) , "Invalid zero address");
         info.push( Info({
             recipient: _recipient,
             rate: _rewardRate
@@ -479,7 +479,7 @@ contract Distributor is Policy {
         @param _recipient address
      */
     function removeRecipient( uint _index, address _recipient ) external onlyPolicy() {
-        require( _recipient == info[ _index ].recipient );
+        require( _recipient == info[ _index ].recipient , "Recipient error");
         info[ _index ].recipient = address(0);
         info[ _index ].rate = 0;
     }

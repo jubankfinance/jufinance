@@ -360,7 +360,7 @@ contract Treasury is Ownable {
         address _calu,
         uint _blocksNeededForQueue
     ) {
-        require(_JUB != address(0));
+        require(_JUB != address(0), "JUB error");
         JUB = _JUB;
 
         isReserveToken[_USDT] = true;
@@ -508,7 +508,7 @@ contract Treasury is Ownable {
         MANAGING _managing,
         address _address
     ) external onlyManager returns (bool) {
-        require(_address != address(0));
+        require(_address != address(0), "Invalid zero address");
         if (_managing == MANAGING.RESERVEDEPOSITOR) {
             reserveDepositorQueue[_address] = block.number.add(blocksNeededForQueue);
         } else if (_managing == MANAGING.RESERVETOKEN) {
@@ -549,7 +549,7 @@ contract Treasury is Ownable {
         address _address,
         address _calculator
     ) external onlyManager returns (bool) {
-        require(_address != address(0));
+        require(_address != address(0), "Invalid zero address");
         bool result;
         if (_managing == MANAGING.RESERVEDEPOSITOR) {
             if (requirements(reserveDepositorQueue, isReserveDepositor, _address)) {

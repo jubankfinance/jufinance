@@ -571,9 +571,9 @@ contract Staking is Ownable {
         uint _firstEpochNumber,
         uint _firstEpochBlock
     ) {
-        require( _JUB != address(0) );
+        require( _JUB != address(0) , "JUB error");
         JUB = _JUB;
-        require( _sJUB != address(0) );
+        require( _sJUB != address(0) , "sJUB error");
         sJUB = _sJUB;
         
         epoch = Epoch({
@@ -707,7 +707,7 @@ contract Staking is Ownable {
         @param _amount uint
      */
     function giveLockBonus( uint _amount ) external {
-        require( msg.sender == locker );
+        require( msg.sender == locker , "Not locker");
         totalBonus = totalBonus.add( _amount );
         IERC20( sJUB ).safeTransfer( locker, _amount );
     }
@@ -717,7 +717,7 @@ contract Staking is Ownable {
         @param _amount uint
      */
     function returnLockBonus( uint _amount ) external {
-        require( msg.sender == locker );
+        require( msg.sender == locker , "Not locker");
         totalBonus = totalBonus.sub( _amount );
         IERC20( sJUB ).safeTransferFrom( locker, address(this), _amount );
     }

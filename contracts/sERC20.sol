@@ -1017,7 +1017,7 @@ contract sToken is ERC20Permit, Ownable {
     using SafeMath for uint256;
 
     modifier onlyStakingContract() {
-        require( msg.sender == stakingContract );
+        require( msg.sender == stakingContract , "Caller error");
         _;
     }
 
@@ -1068,8 +1068,8 @@ contract sToken is ERC20Permit, Ownable {
     }
 
     function initialize( address stakingContract_) external returns ( bool ) {
-        require( msg.sender == initializer );
-        require( stakingContract_ != address(0) );
+        require( msg.sender == initializer , "Caller error");
+        require( stakingContract_ != address(0) , "Invalid zero address");
         stakingContract = stakingContract_;
         _gonBalances[ stakingContract ] = TOTAL_GONS;
 
@@ -1083,7 +1083,7 @@ contract sToken is ERC20Permit, Ownable {
     }
 
     function setIndex( uint _INDEX ) external onlyManager() returns ( bool ) {
-        require( INDEX == 0 );
+        require( INDEX == 0 , "Index error");
         INDEX = gonsForBalance( _INDEX );
         return true;
     }

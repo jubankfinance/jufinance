@@ -270,7 +270,7 @@ contract BondingCalculator is IBondingCalculator {
     address public immutable JUB;
 
     constructor(address _JUB) {
-        require(_JUB != address(0));
+        require(_JUB != address(0), "JUB error");
         JUB = _JUB;
     }
 

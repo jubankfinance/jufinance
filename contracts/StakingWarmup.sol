@@ -80,14 +80,14 @@ contract StakingWarmup {
     address public immutable sJUB;
 
     constructor ( address _staking, address _sJUB ) {
-        require( _staking != address(0) );
+        require( _staking != address(0) , "Staking error");
         staking = _staking;
-        require( _sJUB != address(0) );
+        require( _sJUB != address(0) , "sJUB error");
         sJUB = _sJUB;
     }
 
     function retrieve( address _staker, uint _amount ) external {
-        require( msg.sender == staking );
+        require( msg.sender == staking , "Caller error");
         IERC20( sJUB ).transfer( _staker, _amount );
     }
 }
