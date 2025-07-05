@@ -641,7 +641,8 @@ contract BondDepositoryDai is Ownable {
         address _treasury,
         address _DAO,
         address _bondCalculator,
-        address _sJUB
+        address _sJUB,
+        address _staking
     ) {
         require(_JUB != address(0), "JUB error");
         JUB = _JUB;
@@ -653,6 +654,8 @@ contract BondDepositoryDai is Ownable {
         DAO = _DAO;
         require(_sJUB != address(0), "sJUB error");
         sJUB = _sJUB;
+        require(_staking != address(0), "Staking error");
+        staking = _staking;
         // bondCalculator should be address(0) if not LP bond
         bondCalculator = _bondCalculator;
         isLiquidityBond = (_bondCalculator != address(0));
@@ -794,7 +797,7 @@ contract BondDepositoryDai is Ownable {
      */
     function setStaking(address _staking) external onlyPolicy {
         require(_staking != address(0), "Invalid zero address");
-        stakingHelper = _staking;
+        staking = _staking;
     }
 
     function getBondInfoData(address _addr) public view returns (Bond[] memory) {
